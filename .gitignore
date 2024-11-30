@@ -1,0 +1,67 @@
+# Ignore all (to include files with no extension)
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all dirs
+!*/
+
+### Above combination will ignore all files without extension ###
+# thanks https://gist.github.com/chichunchen/970a7e97c74a253a4503
+
+# build directory
+build/
+cmake-build-debug/
+
+# ide directories
+.idea/
+.cache/
+*.swp
+.color_coded
+.vscode/
+.vs/
+
+# .bak files
+*.bak
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+# *.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+*.spv
+CMakeSettings.json
+
+# visual studio debug files
+*.pdb
+
+# performance profiler files
+*.csv
