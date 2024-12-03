@@ -3,6 +3,7 @@
 
 #include "vector"
 #include "draft_elements/line.h"
+#include "draft_elements/circle_arc.h"
 
 namespace draft {
 
@@ -10,10 +11,11 @@ namespace draft {
 
       public:
 
-        int _width = 1000;
-        int _height = 1000;
+        int _width = 300;
+        int _height = 300;
 
         std::vector<Line> _lines;
+        std::vector<CircleArc> _circle_arcs;
 
       public:
 

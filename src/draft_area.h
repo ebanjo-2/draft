@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #include "draft.h"
 #include "glm/glm.hpp"
+#include "draft_tools/line_tool.h"
 
 namespace draft {
 
@@ -13,6 +14,9 @@ namespace draft {
 
         // the current draft
         Draft _draft;
+
+        // draft tools
+        LineTool _line_tool;
 
         // controlling the view
         float _zoom_level = 1.0f;
@@ -40,6 +44,9 @@ namespace draft {
         void onKeyDown(wxKeyEvent& event);
         void onKeyUp(wxKeyEvent& event);
 
+        // drawing parts of the draft area
+        void drawDraftGround(wxPaintDC& dc, const glm::mat3& view_matrix);
+        void drawGrid(wxPaintDC& dc, const glm::mat3& view_matrix);
 
         wxDECLARE_EVENT_TABLE();
 

@@ -20,7 +20,7 @@ if(wxWidgets_USE_FILE) # not defined in CONFIG mode
     include(${wxWidgets_USE_FILE})
 endif()
 
-add_executable(draft 
+add_executable( draft 
     
     src/main.cpp
     src/main_window.h
@@ -32,6 +32,13 @@ add_executable(draft
         
     src/draft_elements/line.h
     src/draft_elements/line.cpp
+    src/draft_elements/circle_arc.h
+    src/draft_elements/circle_arc.cpp
+    src/draft_elements/length_constraint.h
+    src/draft_elements/length_constraint.cpp    
+
+    src/draft_tools/line_tool.h
+    src/draft_tools/line_tool.cpp
 
 )
 

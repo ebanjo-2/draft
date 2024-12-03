@@ -18,6 +18,8 @@ namespace draft {
     DraftArea::DraftArea(wxWindow *parent)
         : wxScrolledWindow(parent, wxID_ANY, wxPoint(0, 0), wxDefaultSize, wxVSCROLL | wxHSCROLL) {
         
+        _draft._lines.push_back(Line(glm::vec2(100, 100), glm::vec2(200, 100)));
+        _draft._circle_arcs.push_back(CircleArc(glm::vec2(100, 200), 50.0f, 20.0f, 150.0f));
     }
 
     void DraftArea::resetView() {
@@ -43,23 +45,22 @@ namespace draft {
 
         glm::mat3 view_matrix = calcViewMatrix(_view_position, _zoom_level);
 
-        // drawing the draft area
-        glm::vec3 p0 = view_matrix * glm::vec3(0.0f, 0.0f, 1.0f);
-        glm::vec3 p1 = view_matrix * glm::vec3(_draft._width, _draft._height, 1.0f);
+        drawDraftGround(dc, view_matrix);
+        // drawGrid(dc, view_matrix);
 
-        wxRect draft_area(wxPoint(p0.x,p0.y), wxPoint(p1.x, p1.y));
-
-        // drawing the background
-        dc.SetPen(wxPen(*wxBLACK, 2, wxPENSTYLE_SOLID));
-        dc.SetBrush(wxBrush(wxColor(0xb5decf)));
-        dc.DrawRectangle(draft_area);
+        _line_tool.onPaint(dc, view_matrix, _zoom_level);
 
         // drawing the draft
         dc.SetPen(wxPen(*wxBLACK, 1, wxPENSTYLE_SOLID));
 
         for(const Line& l: _draft._lines) {
             
-            l.draw(dc, view_matrix);
+            l.draw(dc, view_matrix, _zoom_level);
+        }
+
+        for(const CircleArc& c: _draft._circle_arcs) {
+            
+            c.draw(dc, view_matrix, _zoom_level);
         }
 
     }
@@ -69,11 +70,11 @@ namespace draft {
         _space_reset_view = false;
 
         if (_cursor_is_dragging && event.Dragging()) {
+            
+            glm::mat3 inverse_view = calcInverseViewMatrix(_view_position, _zoom_level);
 
             if (wxGetKeyState(WXK_SPACE)) {
                 // move the view
-
-                glm::mat3 inverse_view = calcInverseViewMatrix(_view_position, _zoom_level);
 
                 glm::vec3 pos0 = inverse_view * glm::vec3(_cursor_position.x, _cursor_position.y, 1.0f);
                 glm::vec3 pos1 = inverse_view * glm::vec3(event.GetPosition().x, event.GetPosition().y, 1.0f);
@@ -84,13 +85,7 @@ namespace draft {
 
             } else {
 
-                glm::mat3 inverse_view = calcInverseViewMatrix(_view_position, _zoom_level);
-
-                glm::vec3 pos0 = inverse_view * glm::vec3(_cursor_position.x, _cursor_position.y, 1.0f);
-                glm::vec3 pos1 = inverse_view * glm::vec3(event.GetPosition().x, event.GetPosition().y, 1.0f);
-
-                _draft._lines.push_back(Line(pos0, pos1));
-                
+                _line_tool.onMotion(event, inverse_view);
             }
         }
 
@@ -117,12 +112,20 @@ namespace draft {
         // move the view to keep the same cursor position with the new zoom
         _view_position = glm::vec2(inverse_view * glm::vec3(cursor_pos, 1.0f)) - cursor_pos / _zoom_level;
 
-        // redraw 
+        // redraw
         Refresh();
     }
 
     void DraftArea::onMouseLeft(wxMouseEvent &event) {
 
+        glm::mat3 inverse_view = calcInverseViewMatrix(_view_position, _zoom_level);
+
+        Line new_line;
+
+        if(_line_tool.onMouseLeft(event, inverse_view, new_line)) 
+            _draft._lines.push_back(new_line);
+
+        Refresh();
     }
 
     void DraftArea::onKeyDown(wxKeyEvent& event) {
@@ -147,6 +150,98 @@ namespace draft {
             }
 
         }
+
+    }
+
+    void DraftArea::drawDraftGround(wxPaintDC& dc, const glm::mat3& view_matrix) {
+
+        // drawing the draft area
+        glm::vec3 p0 = view_matrix * glm::vec3(0.0f, 0.0f, 1.0f);
+        glm::vec3 p1 = view_matrix * glm::vec3(_draft._width, _draft._height, 1.0f);
+
+        wxRect draft_area(wxPoint(p0.x,p0.y), wxPoint(p1.x, p1.y));
+
+        // drawing the background
+        dc.SetPen(wxPen(*wxBLACK, 2, wxPENSTYLE_SOLID));
+        dc.SetBrush(wxBrush(wxColor(0xb5decf)));
+        dc.DrawRectangle(draft_area);
+
+    }
+
+    void DraftArea::drawGrid(wxPaintDC& dc, const glm::mat3& view_matrix) {
+
+        // calculating the visible area
+        glm::mat3 inverse_view = calcInverseViewMatrix(_view_position, _zoom_level);
+        glm::vec3 screen_p0 = inverse_view * glm::vec3(0.0f, 0.0f, 1.0f);
+        glm::vec3 screen_p1 = inverse_view * glm::vec3(GetSize().x, GetSize().y, 1.0f);
+
+        glm::vec3 draft_p0 = glm::vec3(1.0f, 0.0f, 0.0f);
+        glm::vec3 draft_p1 = glm::vec3(_draft._width, _draft._height, 0.0f);
+
+        glm::vec3 grid_p0 = glm::max(screen_p0, draft_p0);
+        glm::vec3 grid_p1 = glm::min(screen_p1, draft_p1);
+
+        // cm lines
+        if(_zoom_level > 1.0f) {
+            dc.SetPen(wxPen(*wxColor(0, 0, 0, 100), 3, wxPENSTYLE_SOLID));
+
+            for(int i = int(grid_p0.x / 10) * 10; i < grid_p1.x; i+=10) {
+                glm::vec3 p0 = view_matrix * glm::vec3(i, grid_p0.y, 1.0f);
+                glm::vec3 p1 = view_matrix * glm::vec3(i, grid_p1.y, 1.0f);
+
+                dc.DrawLine(p0.x, p0.y, p1.x, p1.y);
+            }
+
+            for(int i = int(grid_p0.y / 10) * 10; i < grid_p1.y; i+=10) {
+                glm::vec3 p0 = view_matrix * glm::vec3(grid_p0.x, i, 1.0f);
+                glm::vec3 p1 = view_matrix * glm::vec3(grid_p1.x, i, 1.0f);
+
+                dc.DrawLine(p0.x, p0.y, p1.x, p1.y);
+            }
+        }
+
+        // 5 mm lines
+        if(_zoom_level > 2.0f) {
+            dc.SetPen(wxPen(wxColor(0, 0, 0, 100), 2, wxPENSTYLE_SOLID));
+
+            for(int i = int(grid_p0.x / 10) * 10 + 5; i < grid_p1.x; i+=10) {
+                glm::vec3 p0 = view_matrix * glm::vec3(i, grid_p0.y, 1.0f);
+                glm::vec3 p1 = view_matrix * glm::vec3(i, grid_p1.y, 1.0f);
+
+                dc.DrawLine(p0.x, p0.y, p1.x, p1.y);
+            }
+
+            for(int i = int(grid_p0.y / 10) * 10 + 5; i < grid_p1.y; i+=10) {
+                glm::vec3 p0 = view_matrix * glm::vec3(grid_p0.x, i, 1.0f);
+                glm::vec3 p1 = view_matrix * glm::vec3(grid_p1.x, i, 1.0f);
+
+                dc.DrawLine(p0.x, p0.y, p1.x, p1.y);
+            }
+        }
+
+        // mm lines
+        if(_zoom_level > 10.0f) {
+            dc.SetPen(wxPen(wxColor(0, 0, 0, 100), 1, wxPENSTYLE_SOLID));
+
+            for(int i = grid_p0.x; i < grid_p1.x; i++) {
+                glm::vec3 p0 = view_matrix * glm::vec3(i, grid_p0.y, 1.0f);
+                glm::vec3 p1 = view_matrix * glm::vec3(i, grid_p1.y, 1.0f);
+
+                dc.DrawLine(p0.x, p0.y, p1.x, p1.y);
+            }
+
+            for(int i = grid_p0.y; i < grid_p1.y; i++) {
+                glm::vec3 p0 = view_matrix * glm::vec3(grid_p0.x, i, 1.0f);
+                glm::vec3 p1 = view_matrix * glm::vec3(grid_p1.x, i, 1.0f);
+
+                dc.DrawLine(p0.x, p0.y, p1.x, p1.y);
+            }
+        }
+        
+        // glm::vec3 p0 = view_matrix * glm::vec3(0.0f, 0.0f, 1.0f);
+        //glm::vec3 p1 = view_matrix * glm::vec3(_draft._width, _draft._height, 1.0f);
+
+
 
     }
 

@@ -56,8 +56,6 @@ namespace draft {
     void MainWindow::onExit(wxCommandEvent &event) {
 
         Close(true);
-
-        std::cout << "Trying to close the window!\n";
     }
 
     void MainWindow::onAbout(wxCommandEvent &event) {
