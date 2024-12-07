@@ -27,18 +27,14 @@ add_executable( draft
     src/main_window.cpp
     src/draft_area.h
     src/draft_area.cpp
-    src/draft.h
-    src/draft.cpp
-        
-    src/draft_elements/line.h
-    src/draft_elements/line.cpp
-    src/draft_elements/circle_arc.h
-    src/draft_elements/circle_arc.cpp
-    src/draft_elements/length_constraint.h
-    src/draft_elements/length_constraint.cpp    
-
-    src/draft_tools/line_tool.h
-    src/draft_tools/line_tool.cpp
+    src/draft_painter.h
+    src/draft_painter.cpp
+    src/part.h
+    src/part.cpp
+    src/connectors.h
+    src/connectors.cpp
+    src/constraints.h
+    src/constraints.cpp
 
 )
 

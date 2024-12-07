@@ -20,12 +20,14 @@ namespace draft {
 
         wxMenu* createFileMenu();
         wxMenu* createHelpMenu();
-        void createMenuBar(wxMenu* menu_file, wxMenu* menu_help);
+        wxMenu* createViewMenu();
+        void createMenuBar(wxMenu* menu_file, wxMenu* menu_help, wxMenu* menu_view);
 
         // menu callbacks
         void onHello(wxCommandEvent &event);
         void onExit(wxCommandEvent &event);
         void onAbout(wxCommandEvent &event);
+        void onToggleVertexVisibility(wxCommandEvent& event);
 
         wxDECLARE_EVENT_TABLE();
     };

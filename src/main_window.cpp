@@ -3,13 +3,15 @@
 namespace draft {
 
     enum MenuEventIDs {
-        ID_Hello = 1
+        ID_Hello = 1,
+        ID_Toggle_Vertex_Visibility
     };
 
     BEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(wxID_ABOUT, MainWindow::onAbout)
     EVT_MENU(wxID_EXIT, MainWindow::onExit)
     EVT_MENU(ID_Hello, MainWindow::onHello)
+    EVT_MENU(ID_Toggle_Vertex_Visibility, MainWindow::onToggleVertexVisibility)
     END_EVENT_TABLE();
 
     MainWindow::MainWindow() : wxFrame(nullptr, wxID_ANY, "Draft") {
@@ -18,8 +20,9 @@ namespace draft {
 
         wxMenu *menu_file = createFileMenu();
         wxMenu *menu_help = createHelpMenu();
+        wxMenu *menu_view = createViewMenu();
 
-        createMenuBar(menu_file, menu_help);
+        createMenuBar(menu_file, menu_help, menu_view);
 
         CreateStatusBar();
         SetStatusText("Welcome to wxWidgets!");
@@ -44,11 +47,19 @@ namespace draft {
         return menuHelp;
     }
 
-    void MainWindow::createMenuBar(wxMenu *menu_file, wxMenu *menu_help) {
+    wxMenu *MainWindow::createViewMenu() {
+        wxMenu *menuView = new wxMenu;
+        menuView->Append(ID_Toggle_Vertex_Visibility, "Toggle Vertices \tCtrl-V");
+
+        return menuView;
+    }
+
+    void MainWindow::createMenuBar(wxMenu *menu_file, wxMenu *menu_help, wxMenu* menu_view) {
 
         wxMenuBar *menuBar = new wxMenuBar;
         menuBar->Append(menu_file, "&File");
         menuBar->Append(menu_help, "&Help");
+        menuBar->Append(menu_view, "&View");
 
         SetMenuBar(menuBar);
     }
@@ -66,6 +77,12 @@ namespace draft {
     void MainWindow::onHello(wxCommandEvent &event) {
 
         wxLogMessage("Hello world from wxWidgets!");
+    }
+
+    void MainWindow::onToggleVertexVisibility(wxCommandEvent& event) {
+
+        _draft_area->setShowVertices(!_draft_area->getShowVertices());
+
     }
 
 } // namespace draft
