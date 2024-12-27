@@ -3,6 +3,7 @@
 
 #include <wx/wx.h>
 #include "draft_area.h"
+#include "control_panel.h"
 
 namespace draft {
 

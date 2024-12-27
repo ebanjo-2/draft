@@ -5,7 +5,7 @@
 
 namespace draft {
 
-    BEGIN_EVENT_TABLE(DraftArea, wxScrolledWindow)
+    BEGIN_EVENT_TABLE(DraftArea, wxWindow)
     EVT_ERASE_BACKGROUND(DraftArea::onErase)
     EVT_PAINT(DraftArea::onPaint)
     EVT_MOTION(DraftArea::onMotion)
@@ -17,8 +17,10 @@ namespace draft {
     END_EVENT_TABLE();
 
     DraftArea::DraftArea(wxWindow *parent)
-        : wxWindow(parent, wxID_ANY, wxPoint(0, 0), wxDefaultSize, wxVSCROLL | wxHSCROLL) {
-        
+        : wxWindow(parent, wxID_ANY, wxPoint(0, 0), parent->GetSize()) {
+
+        _control_panel = new ControlPanel(this);
+
         //_draft._lines.push_back(Line(glm::vec2(100, 100), glm::vec2(200, 100)));
         //_draft._circle_arcs.push_back(CircleArc(glm::vec2(100, 200), 50.0f, 20.0f, 150.0f));
     }
@@ -49,9 +51,13 @@ namespace draft {
 
     void DraftArea::onErase(wxEraseEvent &event) {
 
+        event.Skip();
     }
 
     void DraftArea::onPaint(wxPaintEvent &event) {
+
+        if(m_parent->GetSize() != GetSize())
+            SetSize(m_parent->GetSize());
 
         wxPaintDC dc(this);
 
@@ -98,7 +104,7 @@ namespace draft {
         */
 
         // drawGrid(dc, view_matrix);
-
+        event.Skip();
     }
 
     void DraftArea::onMotion(wxMouseEvent &event) {
@@ -132,6 +138,8 @@ namespace draft {
 
         _cursor_is_dragging = event.Dragging();
         _cursor_position = event.GetPosition();
+
+        event.Skip();
     }
 
     void DraftArea::onMouseWheel(wxMouseEvent &event) {
@@ -153,6 +161,8 @@ namespace draft {
 
         // redraw
         Refresh();
+
+        event.Skip();
     }
 
     void DraftArea::onMouseLeft(wxMouseEvent &event) {
@@ -178,6 +188,7 @@ namespace draft {
         }
 
         Refresh();
+        event.Skip();
     }
 
     void DraftArea::onKeyDown(wxKeyEvent& event) {
@@ -192,11 +203,9 @@ namespace draft {
                 _part.eraseConnector(_selection);
 
             Refresh();
-        } else {
-
-            event.Skip();
         }
 
+        event.Skip();
     }
 
     void DraftArea::onKeyUp(wxKeyEvent& event) {
@@ -210,10 +219,9 @@ namespace draft {
                 resetView();
             }
 
-        } else {
-            event.Skip();
         }
 
+        event.Skip();
     }
 
     void DraftArea::onChar(wxKeyEvent& event) {
@@ -234,10 +242,9 @@ namespace draft {
                 _part.eraseConnector(_selection);
             Refresh();
             _next_action = SELECT;
-        } else {
-            event.Skip();
         }
-
+        
+        event.Skip();
     }
 
     void DraftArea::drawDraftGround(wxPaintDC& dc, const glm::mat3& view_matrix) {

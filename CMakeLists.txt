@@ -35,7 +35,8 @@ add_executable( draft
     src/connectors.cpp
     src/constraints.h
     src/constraints.cpp
-
+    src/control_panel.h
+    src/control_panel.cpp
 )
 
 

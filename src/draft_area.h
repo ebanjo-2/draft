@@ -6,6 +6,7 @@
 #include "draft_painter.h"
 #include "part.h"
 #include "string"
+#include "control_panel.h"
 
 namespace draft {
 
@@ -41,6 +42,8 @@ namespace draft {
 
         DraftAction _next_action = SELECT;
         std::string _selection = "";
+
+        ControlPanel* _control_panel;
 
       public:
 
